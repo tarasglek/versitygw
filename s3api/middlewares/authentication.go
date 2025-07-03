@@ -167,9 +167,6 @@ func VerifyV4Signature(root RootUserConfig, iam auth.IAMService, logger s3log.Au
 			}
 		}
 
-		if debug {
-			fmt.Fprintf(os.Stderr, "DEBUG: Authenticating with host: %s\n", string(ctx.Request().Host()))
-		}
 		err = utils.CheckValidSignature(ctx, authData, account.Secret, hashPayload, tdate, contentLength, debug)
 		if err != nil {
 			return sendResponse(ctx, err, logger, mm)

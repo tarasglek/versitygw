@@ -642,9 +642,6 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 		Network:               fiber.NetworkTCP,
 		DisableStartupMessage: true,
 	}
-	if reverseProxy {
-		admAppConfig.ProxyHeader = fiber.HeaderXForwardedFor
-	}
 	admApp := fiber.New(admAppConfig)
 
 	if reverseProxy {
