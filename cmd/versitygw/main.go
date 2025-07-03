@@ -594,7 +594,10 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 	if reverseProxy {
 		app.Use(func(c *fiber.Ctx) error {
 			if fwdHost := c.Get(fiber.HeaderXForwardedHost); fwdHost != "" {
+				originalHost := c.Get(fiber.HeaderHost)
+				log.Printf("reverse proxy middleware: original host: %q, X-Forwarded-Host: %q", originalHost, fwdHost)
 				c.Request().SetHost(fwdHost)
+				log.Printf("reverse proxy middleware: new host: %q", c.Get(fiber.HeaderHost))
 			}
 			return c.Next()
 		})
@@ -649,7 +652,10 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 	if reverseProxy {
 		admApp.Use(func(c *fiber.Ctx) error {
 			if fwdHost := c.Get(fiber.HeaderXForwardedHost); fwdHost != "" {
+				originalHost := c.Get(fiber.HeaderHost)
+				log.Printf("reverse proxy admin middleware: original host: %q, X-Forwarded-Host: %q", originalHost, fwdHost)
 				c.Request().SetHost(fwdHost)
+				log.Printf("reverse proxy admin middleware: new host: %q", c.Get(fiber.HeaderHost))
 			}
 			return c.Next()
 		})
