@@ -78,6 +78,7 @@ var (
 	ipaHost, ipaVaultName                    string
 	ipaUser, ipaPassword                     string
 	ipaInsecure, ipaDebug                    bool
+	reverseProxy                             bool
 )
 
 var (
@@ -555,6 +556,12 @@ func initFlags() []cli.Flag {
 			EnvVars:     []string{"VGW_IPA_DEBUG"},
 			Destination: &ipaDebug,
 		},
+		&cli.BoolFlag{
+			Name:        "reverse-proxy",
+			Usage:       "Enable reverse proxy support. The gateway will trust X-Forwarded-* headers.",
+			EnvVars:     []string{"VGW_REVERSE_PROXY"},
+			Destination: &reverseProxy,
+		},
 	}
 }
 
@@ -571,14 +578,18 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 		}()
 	}
 
-	app := fiber.New(fiber.Config{
+	appConfig := fiber.Config{
 		AppName:               "versitygw",
 		ServerHeader:          "VERSITYGW",
 		StreamRequestBody:     true,
 		DisableKeepalive:      true,
 		Network:               fiber.NetworkTCP,
 		DisableStartupMessage: true,
-	})
+	}
+	if reverseProxy {
+		appConfig.ProxyHeader = fiber.HeaderXForwardedFor
+	}
+	app := fiber.New(appConfig)
 
 	var opts []s3api.Option
 
@@ -615,12 +626,16 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 		opts = append(opts, s3api.WithHostStyle(virtualDomain))
 	}
 
-	admApp := fiber.New(fiber.Config{
+	admAppConfig := fiber.Config{
 		AppName:               "versitygw",
 		ServerHeader:          "VERSITYGW",
 		Network:               fiber.NetworkTCP,
 		DisableStartupMessage: true,
-	})
+	}
+	if reverseProxy {
+		admAppConfig.ProxyHeader = fiber.HeaderXForwardedFor
+	}
+	admApp := fiber.New(admAppConfig)
 
 	var admOpts []s3api.AdminOpt
 
