@@ -595,6 +595,7 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 		app.Use(func(c *fiber.Ctx) error {
 			if fwdHost := c.Get(fiber.HeaderXForwardedHost); fwdHost != "" {
 				c.Request().SetHost(fwdHost)
+				c.Request().Header.Set(fiber.HeaderHost, fwdHost)
 			}
 			return c.Next()
 		})
@@ -650,6 +651,7 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 		admApp.Use(func(c *fiber.Ctx) error {
 			if fwdHost := c.Get(fiber.HeaderXForwardedHost); fwdHost != "" {
 				c.Request().SetHost(fwdHost)
+				c.Request().Header.Set(fiber.HeaderHost, fwdHost)
 			}
 			return c.Next()
 		})
