@@ -591,6 +591,15 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 	}
 	app := fiber.New(appConfig)
 
+	if reverseProxy {
+		app.Use(func(c *fiber.Ctx) error {
+			if fwdHost := c.Get(fiber.HeaderXForwardedHost); fwdHost != "" {
+				c.Request().SetHost(fwdHost)
+			}
+			return c.Next()
+		})
+	}
+
 	var opts []s3api.Option
 
 	if certFile != "" || keyFile != "" {
@@ -636,6 +645,15 @@ func runGateway(ctx context.Context, be backend.Backend) error {
 		admAppConfig.ProxyHeader = fiber.HeaderXForwardedFor
 	}
 	admApp := fiber.New(admAppConfig)
+
+	if reverseProxy {
+		admApp.Use(func(c *fiber.Ctx) error {
+			if fwdHost := c.Get(fiber.HeaderXForwardedHost); fwdHost != "" {
+				c.Request().SetHost(fwdHost)
+			}
+			return c.Next()
+		})
+	}
 
 	var admOpts []s3api.AdminOpt
 
